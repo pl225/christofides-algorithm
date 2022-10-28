@@ -16,6 +16,12 @@ TSPLIB_parser.o: TSPLIB_parser.cpp TSPLIB_parser.h ./Matching/Graph.h
 Example.o: Example.cpp MST.h ./Matching/Matching.h ./Matching/Graph.h Christofides.h TSPLIB_parser.h
 	g++ $(FLAG) -c Example.cpp -o Example.o
 
-christofides: Matching.o BinaryHeap.o Graph.o Example.o TSPLIB_parser.o
-	g++ $(FLAG) Matching.o BinaryHeap.o Graph.o Example.o TSPLIB_parser.o -o christofides
+MST.o: MST.cpp
+	g++ $(FLAG) -c MST.cpp -o MST.o
+
+Christofides.o: Christofides.cpp
+	g++ $(FLAG) -c Christofides.cpp -o Christofides.o
+
+christofides: Matching.o BinaryHeap.o Graph.o Example.o TSPLIB_parser.o Christofides.o MST.o
+	g++ $(FLAG) Matching.o BinaryHeap.o Graph.o Example.o TSPLIB_parser.o Christofides.o MST.o -o christofides
 

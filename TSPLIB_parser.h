@@ -1,3 +1,4 @@
+#pragma once
 #include "./Matching/Graph.h"
 #include <fstream>
 #include <string>
