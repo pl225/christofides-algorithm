@@ -1,17 +1,38 @@
 #include "MST.h"
 
 //Prim's algorithm using binary heap
-pair< list<int>, double > Prim(const Graph & G, const vector<double> & cost)
+pair< list<int>, double > Prim(const Graph & G, const vector<double> & cost, const list<pair<int, int>> &fixedOne)
 {
 	BinaryHeap B;
 
 	vector<int> father(G.GetNumVertices(), -1);
+	vector<int> fixado(G.GetNumVertices(), -3);
 	list<int> mst;
 
 	double obj = 0;
-	
-	//Put 0 in the heap
-	B.Insert(0, 0);
+
+	if (fixedOne.empty()) {
+		//Put 0 in the heap
+		B.Insert(0, 0);
+	} else {
+		for (const pair<int, int> &edge: fixedOne) {
+			int w = edge.first, u = edge.second;
+			if (father[u] == -1 && father[w] == -1) {
+				B.Insert(std::numeric_limits<double>::min(), u);
+				father[u] = w;
+				fixado[u] = w;
+				father[w] = -2;
+			} else if (father[w] == -1 && father[u] != -1) {
+				B.Insert(std::numeric_limits<double>::min(), w);
+				father[w] = u;
+				fixado[w] = u;
+			} else if (father[u] == -1 && father[w] != -1) {
+				B.Insert(std::numeric_limits<double>::min(), u);
+				father[u] = w;
+				fixado[u] = w;
+			}
+		}
+	}
 
 	while(B.Size() > 0)
 	{
@@ -20,7 +41,7 @@ pair< list<int>, double > Prim(const Graph & G, const vector<double> & cost)
 		int w = father[u];
 
 		//Add {w,u} to the tree
-		if(w != -1)
+		if(w != -1 && w != -3)
 		{
 			int i = G.GetEdgeIndex(w, u);
 			mst.push_back(i);
@@ -39,7 +60,9 @@ pair< list<int>, double > Prim(const Graph & G, const vector<double> & cost)
 			if(father[v] == -2)
 				continue;
 
-			double c = cost[G.GetEdgeIndex(u,v)];
+			double c = fixado[u] == v || fixado[v] == u
+				? std::numeric_limits<double>::min()
+				: cost[G.GetEdgeIndex(u,v)];
 
 			//v has not been reached by anyone else
 			if(father[v] == -1)
@@ -48,10 +71,17 @@ pair< list<int>, double > Prim(const Graph & G, const vector<double> & cost)
 				B.Insert(c, v);
 			}
 			//we found a cheaper connection to v
-			else if( LESS(c, cost[G.GetEdgeIndex(father[v], v)]) )
+			else
 			{
-				father[v] = u;
-				B.ChangeKey(c, v);
+				double cc = fixado[father[v]] == v || fixado[v] == father[v]
+					? std::numeric_limits<double>::min()
+					: cost[G.GetEdgeIndex(father[v], v)];
+				
+				if( LESS(c, cc) )
+				{
+					father[v] = u;
+					B.ChangeKey(c, v);
+				}
 			}
 		}
 	}
