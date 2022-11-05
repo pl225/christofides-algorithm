@@ -41,7 +41,7 @@ pair< list<int>, double > Prim(const Graph & G, const vector<double> & cost, con
 		int w = father[u];
 
 		//Add {w,u} to the tree
-		if(w != -1 && w != -3)
+		if(w != -1)
 		{
 			int i = G.GetEdgeIndex(w, u);
 			mst.push_back(i);
