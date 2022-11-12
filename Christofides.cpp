@@ -1,5 +1,73 @@
 #include "Christofides.h"
 
+void inverter (std::vector<int> &path, int i, int j) {
+	int aux, a = min(i, j) + 1, b = max(i, j) - 1;
+	for (; a < b; a++, b--) {
+		aux = path[a];
+		path[a] = path[b];
+		path[b] = aux;
+	}
+}
+
+pair< vector<int>, double > fixPath2Opt(
+	const Graph & G, 
+	const vector<double> & cost,
+	std::vector<int> &path
+) {
+	for (size_t i = 0; i < path.size() - 1; i++) {
+		if (!G.hasEdge(path[i], path[i + 1])) {
+			double minCost = std::numeric_limits<double>::max(), costAux;
+			int indTrocaSeg = -1, indTrocaPrim = i;
+
+			// após i no caminho
+			for (size_t j = i + 3; j < path.size(); j++) {
+				if (!G.hasEdge(path[i], path[j - 1])) continue;
+				if (!G.hasEdge(path[i + 1], path[j])) continue;
+
+				costAux = cost[G.GetEdgeIndex(path[i], path[j - 1])]
+					+ cost[G.GetEdgeIndex(path[i + 1], path[j])];
+
+				if (costAux < minCost) {
+					minCost = costAux;
+					indTrocaSeg = j;
+				}
+			}
+
+			// antes de i no caminho
+			int k = i + 1;
+			for (int j = 1; j < k - 2; j++) {
+				if (!G.hasEdge(path[j], path[k - 1])) continue;
+				if (!G.hasEdge(path[k], path[j + 1])) continue;
+
+				costAux = cost[G.GetEdgeIndex(path[j], path[i - 1])]
+					+ cost[G.GetEdgeIndex(path[i], path[j + 1])];
+
+				if (costAux < minCost) {
+					minCost = costAux;
+					indTrocaSeg = j;
+					indTrocaPrim = i + 1;
+				}
+			}
+
+			if (indTrocaSeg != -1) {
+				inverter(path, indTrocaPrim, indTrocaSeg);
+			} else {
+				throw "It was not possible to fix the path";
+			}
+		}
+	}
+
+	double obj = 0;
+	vector<int> solution;
+	for (size_t i = 0; i < path.size() - 1; i++) {
+		int edgeIndex = G.GetEdgeIndex(path[i], path[i + 1]);
+		solution.push_back(edgeIndex);
+		obj += cost[edgeIndex];
+	}
+
+	return pair<vector<int>, double>(path, obj);
+}
+
 /*
 Christofides algorithm
 returns a pair containing a vector and a double
@@ -114,19 +182,41 @@ pair< vector<int>, double > Christofides(const Graph & G, const vector<double> &
 	int u = 0;
 	visited[u] = true;
 	list<int>::iterator it = ++(cycle.begin());
+	
+	std::vector<int> path;
+	path.push_back(u);
+	bool failedCreatePath = false;
+
 	for(; it != cycle.end(); it++)
 	{
 		int v = *it;
 		if(visited[v]) 
 			continue;
 
+		path.push_back(v);
 		visited[v] = true;
-		obj += cost[ G.GetEdgeIndex(u, v) ];
-		solution.push_back( G.GetEdgeIndex(u, v) );
+
+		if (G.hasEdge(u, v)) {
+			obj += cost[ G.GetEdgeIndex(u, v) ];
+			solution.push_back( G.GetEdgeIndex(u, v) );
+		} else {
+			failedCreatePath = true;
+		}
+		
 		u = v;
 	}
-	obj += cost[ G.GetEdgeIndex(u, 0) ];
-	solution.push_back( G.GetEdgeIndex(u, 0) );
+	
+	path.push_back(0);
+	if (G.hasEdge(u, 0)) {
+		obj += cost[ G.GetEdgeIndex(u, 0) ];
+		solution.push_back( G.GetEdgeIndex(u, 0) );
+	} else {
+		failedCreatePath = true;
+	}
+
+	if (failedCreatePath) {
+		return fixPath2Opt(G, cost, path);
+	}
 
 	return pair< vector<int>, double >(solution, obj);
 }
