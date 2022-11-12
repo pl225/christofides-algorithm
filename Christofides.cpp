@@ -39,8 +39,8 @@ pair< vector<int>, double > fixPath2Opt(
 				if (!G.hasEdge(path[j], path[k - 1])) continue;
 				if (!G.hasEdge(path[k], path[j + 1])) continue;
 
-				costAux = cost[G.GetEdgeIndex(path[j], path[i - 1])]
-					+ cost[G.GetEdgeIndex(path[i], path[j + 1])];
+				costAux = cost[G.GetEdgeIndex(path[j], path[k - 1])]
+					+ cost[G.GetEdgeIndex(path[k], path[j + 1])];
 
 				if (costAux < minCost) {
 					minCost = costAux;
