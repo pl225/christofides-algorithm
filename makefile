@@ -25,3 +25,5 @@ Christofides.o: Christofides.cpp
 christofides: Matching.o BinaryHeap.o Graph.o Example.o TSPLIB_parser.o Christofides.o MST.o
 	g++ $(FLAG) Matching.o BinaryHeap.o Graph.o Example.o TSPLIB_parser.o Christofides.o MST.o -o christofides
 
+clean:
+	@rm -f *.o
