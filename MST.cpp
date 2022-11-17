@@ -11,26 +11,18 @@ pair< list<int>, double > Prim(const Graph & G, const vector<double> & cost, con
 
 	double obj = 0;
 
-	if (fixedOne.empty()) {
-		//Put 0 in the heap
-		B.Insert(0, 0);
-	} else {
-		for (const pair<int, int> &edge: fixedOne) {
-			int w = edge.first, u = edge.second;
-			if (father[u] == -1 && father[w] == -1) {
-				B.Insert(std::numeric_limits<double>::min(), u);
-				father[u] = w;
-				fixado[u] = w;
-				father[w] = -2;
-			} else if (father[w] == -1 && father[u] != -1) {
-				B.Insert(std::numeric_limits<double>::min(), w);
-				father[w] = u;
-				fixado[w] = u;
-			} else if (father[u] == -1 && father[w] != -1) {
-				B.Insert(std::numeric_limits<double>::min(), u);
-				father[u] = w;
-				fixado[u] = w;
-			}
+	//Put 0 in the heap
+	B.Insert(0, 0);
+
+	for (const pair<int, int> &edge: fixedOne) {
+		int w = edge.first, u = edge.second;
+
+		if (fixado[u] == -3 && fixado[w] == -3) {
+			fixado[u] = w;
+		} else if (fixado[w] == -3 && fixado[u] != -3) {
+			fixado[w] = u;
+		} else if (fixado[u] == -3 && fixado[w] != -3) {
+			fixado[u] = w;
 		}
 	}
 
@@ -67,6 +59,8 @@ pair< list<int>, double > Prim(const Graph & G, const vector<double> & cost, con
 			//v has not been reached by anyone else
 			if(father[v] == -1)
 			{
+				if (fixado[v] != -3 && fixado[v] != u) continue;
+				
 				father[v] = u;	
 				B.Insert(c, v);
 			}
@@ -86,7 +80,7 @@ pair< list<int>, double > Prim(const Graph & G, const vector<double> & cost, con
 		}
 	}
 
-	if((int)mst.size() < G.GetNumVertices()-1)
+	if((int)mst.size() != G.GetNumVertices()-1)
 		throw "Error: graph does not have a spanning tree";
 
 	return pair< list<int>, double >(mst, obj);
